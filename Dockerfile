@@ -1,14 +1,12 @@
-# Linuxowy kontener z openjdk v17
-FROM openjdk:17-jdk-slim
-
-# Ustawianie workdira w kontenerze
+# Etap 1: Budowanie aplikacji 
+FROM maven:3.8-openjdk-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Skopiowanie jarki z hosta do kontenera
-COPY target/demoWeb-0.0.1-SNAPSHOT.jar /app/demoWeb.jar
-
-# Wystawienie portu 8080
+# Etap 2: Uruchomienie aplikacji 
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Uruchomienie aplikacji spring-bootowej przy starcie kontenera
-ENTRYPOINT ["java", "-jar", "/app/demoWeb.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
